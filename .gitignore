@@ -2,8 +2,6 @@
 bin/*
 node_modules/*
 obj/*
-*.csproj
 *.csproj.user
-*.sln
 *.suo
 src/lib/Phaser/*
