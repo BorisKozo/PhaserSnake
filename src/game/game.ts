@@ -5,7 +5,7 @@ module PhaserSnake {
     // Create game instance and connect init, create, update and render methods
     var myGame = new Phaser.Game(window, 'game', 800, 480, init, create, update, render);
     var map: Phaser.Tilemap;
-    var snake: Snake;
+    var level: Level;
 
     function init() {
         myGame.stage.scaleMode = Phaser.StageScaleMode.SHOW_ALL;
@@ -26,7 +26,7 @@ module PhaserSnake {
         options.boardWidth = map.width;
         options.boardHeight = map.height;
         
-        snake = new Snake(myGame,options);
+        level = new Level(myGame,options);
         //myGame.camera.follow(oneTile);
 
         // What happens after everything is loaded?
@@ -34,7 +34,7 @@ module PhaserSnake {
 
 
     function update() {
-        snake.update();
+        level.update();
         //var snakeHead = myGame.createSprite(0, snake.length * 20, "snake_part");
         //snake.add(snakeHead);
     

@@ -25,6 +25,13 @@
     <Content Include="GruntFile.js" />
     <Content Include="src\game\game.ts" />
     <TypeScriptCompile Include="src\game\snake.ts" />
+    <TypeScriptCompile Include="src\game\level.ts" />
+    <Content Include="src\game\level.js">
+      <DependentUpon>level.ts</DependentUpon>
+    </Content>
+    <Content Include="src\game\level.min.js">
+      <DependentUpon>level.ts</DependentUpon>
+    </Content>
     <Content Include="src\game\snake.js">
       <DependentUpon>snake.ts</DependentUpon>
     </Content>
