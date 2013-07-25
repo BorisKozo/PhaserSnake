@@ -1,3 +1,5 @@
+///<reference path="snake.ts"/>
+///<reference path="board_manager.ts"/>
 module PhaserSnake {
 
     export enum Direction {
@@ -19,12 +21,19 @@ module PhaserSnake {
         private _snake: Snake;
         private _boardHeight: number;
         private _boardWidth: number;
+        private _food: Phaser.Sprite;
+
+        boardManager: BoardManager;
+
 
         constructor(game: Phaser.Game, options: GameOptions) {
             this._game = game;
+            this.boardManager = new BoardManager(options);
             this._snake = new Snake(game, options,this);
             this._boardHeight = options.boardHeight;
             this._boardWidth = options.boardWidth;
+            
+            this.createFood();
         }
 
         update() {
@@ -49,6 +58,15 @@ module PhaserSnake {
             }
 
             this._snake.update();
+        }
+
+        createFood() {
+            if (this._food && this._food.alive) {
+                this._food.kill();
+            }
+
+            var position = this.boardManager.captureRandom("food");
+            this._food = this._game.createSprite(position.x * 20, position.y * 20, "food");
         }
 
     }

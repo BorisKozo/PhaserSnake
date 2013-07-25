@@ -23,6 +23,20 @@
     <Content Include="deploy\index.html" />
     <Content Include="deploy\js\game.js" />
     <Content Include="GruntFile.js" />
+    <TypeScriptCompile Include="src\game\food.ts" />
+    <TypeScriptCompile Include="src\game\board_manager.ts" />
+    <Content Include="src\game\boardManager.js">
+      <DependentUpon>board_manager.ts</DependentUpon>
+    </Content>
+    <Content Include="src\game\boardManager.min.js">
+      <DependentUpon>board_manager.ts</DependentUpon>
+    </Content>
+    <Content Include="src\game\food.js">
+      <DependentUpon>food.ts</DependentUpon>
+    </Content>
+    <Content Include="src\game\food.min.js">
+      <DependentUpon>food.ts</DependentUpon>
+    </Content>
     <Content Include="src\game\game.ts" />
     <TypeScriptCompile Include="src\game\snake.ts" />
     <TypeScriptCompile Include="src\game\level.ts" />

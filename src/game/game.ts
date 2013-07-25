@@ -11,6 +11,7 @@ module PhaserSnake {
         myGame.stage.scaleMode = Phaser.StageScaleMode.SHOW_ALL;
         myGame.loader.addImageFile("back_tile", "assets/images/back_tile.png");
         myGame.loader.addImageFile("snake_part", "assets/sprites/snake_part.png");
+        myGame.loader.addImageFile("food", "assets/sprites/food.png");
         myGame.loader.addTextFile("level_map", "assets/maps/background.csv");
         myGame.loader.load();
         // Setup loader here
@@ -27,24 +28,15 @@ module PhaserSnake {
         options.boardHeight = map.height;
         
         level = new Level(myGame,options);
-        //myGame.camera.follow(oneTile);
-
-        // What happens after everything is loaded?
     }
 
 
     function update() {
         level.update();
-        //var snakeHead = myGame.createSprite(0, snake.length * 20, "snake_part");
-        //snake.add(snakeHead);
-    
+   
     }
 
     function render() {
-        // Replace with your own custom render logic
-        // myGame.stage.context.fillStyle = 'rgb(255,255,255)';
-        // myGame.stage.context.font = 'bold 18px Arial';
-        // myGame.stage.context.fillText(Phaser.VERSION + " works!", myGame.stage.centerX - 120, myGame.stage.centerY);
     }
 
 }
