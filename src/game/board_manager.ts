@@ -18,6 +18,14 @@ module PhaserSnake {
         hash(): string {
             return this.x.toString() + "|" + this.y.toString();
         }
+
+        equal(other: BoardPosition): bool {
+            return ((this.x === other.x) && (this.y === other.y))
+        }
+
+        clone(): BoardPosition{
+            return new BoardPosition(this.x, this.y);
+        }
     }
     
     export class BoardManager {
@@ -26,7 +34,7 @@ module PhaserSnake {
         private _data: Object;
         private _count: number;
 
-        private _capture(hash: string, value: string) {
+        private _capture(hash: string, value: any) {
             this._data[hash] = value;
         }
 
@@ -35,7 +43,7 @@ module PhaserSnake {
         }
 
 
-        private _getCaptured(hash: string):string {
+        private _getCaptured(hash: string):any {
             return this._data[hash];
         }
 
@@ -48,20 +56,29 @@ module PhaserSnake {
         }
 
 
-        capture(position:BoardPosition, value: string): string {
+        capture(position:BoardPosition, value: any) {
             var hash = position.hash();
-            if (this._getCaptured(hash)) {
-                return this._data[hash];
+            if (this._getCaptured(hash) === undefined) {
+                this._count++;
             }
             this._capture(hash, value);
-            this._count++;
-            return value;
         }
 
-        getCaptured(position:BoardPosition): string {
+        uncapture(position: BoardPosition):any {
+            var hash = position.hash();
+            if (this._getCaptured(hash) === undefined) {
+                return
+            }
+            var result = this._getCaptured(hash);
+            this._uncapture(hash);
+            this._count--;
+            return result;
+        }
+
+
+        getCaptured(position:BoardPosition): any {
             var hash = position.hash();
             return this._getCaptured(hash);
-        
         }
 
         relocate(fromPosition:BoardPosition, toPosition:BoardPosition) {
@@ -70,15 +87,12 @@ module PhaserSnake {
             if (!this._getCaptured(fromHash)) {
                 return;
             }
-            if (this._getCaptured(toHash)) {
-                return;
-            }
             var value = this._data[fromHash];
             this._uncapture(fromHash);
             this._capture(toHash, value);
         }
 
-        captureRandom(value: string):BoardPosition {
+        captureRandom(value: any):BoardPosition {
             var i:number, j:number, x:number, y:number, hash:string, position:BoardPosition;
 
             if (this._count === (this._width * this._height)) {
@@ -92,6 +106,7 @@ module PhaserSnake {
                 hash = position.hash();
                 if (!this._getCaptured(hash)) {
                     this._capture(hash, value);
+                    this._count++;
                     return position;
                 }
             }
@@ -102,6 +117,7 @@ module PhaserSnake {
                     hash = position.hash();
                     if (!this._getCaptured(hash)) {
                         this._capture(hash, value);
+                        this._count++;
                         return position;
                     }
                 }

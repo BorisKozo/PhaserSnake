@@ -21,7 +21,7 @@ module PhaserSnake {
         private _snake: Snake;
         private _boardHeight: number;
         private _boardWidth: number;
-        private _food: Phaser.Sprite;
+        private _foodPosition: BoardPosition;
 
         boardManager: BoardManager;
 
@@ -29,10 +29,10 @@ module PhaserSnake {
         constructor(game: Phaser.Game, options: GameOptions) {
             this._game = game;
             this.boardManager = new BoardManager(options);
-            this._snake = new Snake(game, options,this);
+            this._snake = new Snake(game, options, this);
             this._boardHeight = options.boardHeight;
             this._boardWidth = options.boardWidth;
-            
+
             this.createFood();
         }
 
@@ -61,12 +61,31 @@ module PhaserSnake {
         }
 
         createFood() {
-            if (this._food && this._food.alive) {
-                this._food.kill();
+            var food;
+            if (this._foodPosition) {
+                food = <Phaser.Sprite> this.boardManager.getCaptured(this._foodPosition);
+                food.kill();
             }
 
-            var position = this.boardManager.captureRandom("food");
-            this._food = this._game.createSprite(position.x * 20, position.y * 20, "food");
+
+            this._foodPosition = this.boardManager.captureRandom("");
+            food = this._game.createSprite(this._foodPosition.x * 20, this._foodPosition.y * 20, "food");
+            this.boardManager.capture(this._foodPosition, food);
+        
+        }
+
+        moveSnake(toPosition: BoardPosition, fromPosition: BoardPosition): bool {
+            if (toPosition.equal(fromPosition)) {
+                return true;
+            }
+
+
+            if (toPosition.equal(this._foodPosition)) {
+                this.createFood();
+                return false;
+            }
+
+            return true;
         }
 
     }

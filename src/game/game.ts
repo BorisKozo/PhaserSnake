@@ -23,7 +23,7 @@ module PhaserSnake {
         options.direction = Direction.Right;
         options.positionX = 10;
         options.positionY = 10;
-        options.speed = 500;
+        options.speed = 200;
         options.boardWidth = map.width;
         options.boardHeight = map.height;
         

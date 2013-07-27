@@ -3,20 +3,21 @@ var PhaserSnake;
     var Snake = (function () {
         function Snake(game, options, level) {
             this._game = game;
-            this._snake = game.createGroup();
+            this._snake = [];
             this._speed = options.speed;
             this._speedCount = 0;
-            this._position = new PhaserSnake.BoardPosition(options.positionX, options.positionY);
+            this._head = new PhaserSnake.BoardPosition(options.positionX, options.positionY);
             this._direction = options.direction;
             this._level = level;
             this._boardHeight = options.boardHeight;
             this._boardWidth = options.boardWidth;
-            var snakeHead = this._createSnakePart(this._position);
-            this._snake.add(snakeHead);
-            this._level.boardManager.capture(this._position, "snake");
+            var snakeHead = this._createSnakePart(this._head);
+            this._snake.push(this._head.clone());
+            this._level.boardManager.capture(this._head, snakeHead);
         }
         Snake.prototype._createSnakePart = function (position) {
-            return this._game.createSprite(position.x * 20, position.y * 20, "snake_part");
+            var result = this._game.createSprite(position.x * 20, position.y * 20, "snake_part");
+            return result;
         };
         Object.defineProperty(Snake.prototype, "Direction", {
             get: function () {
@@ -37,31 +38,38 @@ var PhaserSnake;
         };
         Snake.prototype.move = function () {
             if(this._direction === PhaserSnake.Direction.Right) {
-                this._position.x += 1;
-                if(this._position.x === this._boardWidth) {
-                    this._position.x = 0;
+                this._head.x += 1;
+                if(this._head.x === this._boardWidth) {
+                    this._head.x = 0;
                 }
             }
             if(this._direction === PhaserSnake.Direction.Left) {
-                this._position.x -= 1;
-                if(this._position.x < 0) {
-                    this._position.x = this._boardWidth - 1;
+                this._head.x -= 1;
+                if(this._head.x < 0) {
+                    this._head.x = this._boardWidth - 1;
                 }
             }
             if(this._direction === PhaserSnake.Direction.Down) {
-                this._position.y += 1;
-                if(this._position.y === this._boardHeight) {
-                    this._position.y = 0;
+                this._head.y += 1;
+                if(this._head.y === this._boardHeight) {
+                    this._head.y = 0;
                 }
             }
             if(this._direction === PhaserSnake.Direction.Up) {
-                this._position.y -= 1;
-                if(this._position.y < 0) {
-                    this._position.y = this._boardHeight - 1;
+                this._head.y -= 1;
+                if(this._head.y < 0) {
+                    this._head.y = this._boardHeight - 1;
                 }
             }
-            this._snake.remove(this._snake.members[this._snake.length - 1]).kill();
-            this._snake.add(this._createSnakePart(this._position));
+            var tailPosition = this._snake[0];
+            var snakeMoveResult = this._level.moveSnake(this._head, tailPosition);
+            var tail;
+            if(snakeMoveResult) {
+                this._level.boardManager.uncapture(tailPosition).kill();
+                this._snake.shift();
+            }
+            this._snake.push(this._head.clone());
+            this._level.boardManager.capture(this._head, this._createSnakePart(this._head));
         };
         return Snake;
     })();
@@ -111,11 +119,24 @@ var PhaserSnake;
             this._snake.update();
         };
         Level.prototype.createFood = function () {
-            if(this._food && this._food.alive) {
-                this._food.kill();
+            var food;
+            if(this._foodPosition) {
+                food = this.boardManager.getCaptured(this._foodPosition);
+                food.kill();
             }
-            var position = this.boardManager.captureRandom("food");
-            this._food = this._game.createSprite(position.x * 20, position.y * 20, "food");
+            this._foodPosition = this.boardManager.captureRandom("");
+            food = this._game.createSprite(this._foodPosition.x * 20, this._foodPosition.y * 20, "food");
+            this.boardManager.capture(this._foodPosition, food);
+        };
+        Level.prototype.moveSnake = function (toPosition, fromPosition) {
+            if(toPosition.equal(fromPosition)) {
+                return true;
+            }
+            if(toPosition.equal(this._foodPosition)) {
+                this.createFood();
+                return false;
+            }
+            return true;
         };
         return Level;
     })();
@@ -133,6 +154,12 @@ var PhaserSnake;
         }
         BoardPosition.prototype.hash = function () {
             return this.x.toString() + "|" + this.y.toString();
+        };
+        BoardPosition.prototype.equal = function (other) {
+            return ((this.x === other.x) && (this.y === other.y));
+        };
+        BoardPosition.prototype.clone = function () {
+            return new BoardPosition(this.x, this.y);
         };
         return BoardPosition;
     })();
@@ -156,12 +183,20 @@ var PhaserSnake;
         };
         BoardManager.prototype.capture = function (position, value) {
             var hash = position.hash();
-            if(this._getCaptured(hash)) {
-                return this._data[hash];
+            if(this._getCaptured(hash) === undefined) {
+                this._count++;
             }
             this._capture(hash, value);
-            this._count++;
-            return value;
+        };
+        BoardManager.prototype.uncapture = function (position) {
+            var hash = position.hash();
+            if(this._getCaptured(hash) === undefined) {
+                return;
+            }
+            var result = this._getCaptured(hash);
+            this._uncapture(hash);
+            this._count--;
+            return result;
         };
         BoardManager.prototype.getCaptured = function (position) {
             var hash = position.hash();
@@ -171,9 +206,6 @@ var PhaserSnake;
             var fromHash = fromPosition.hash();
             var toHash = toPosition.hash();
             if(!this._getCaptured(fromHash)) {
-                return;
-            }
-            if(this._getCaptured(toHash)) {
                 return;
             }
             var value = this._data[fromHash];
@@ -192,6 +224,7 @@ var PhaserSnake;
                 hash = position.hash();
                 if(!this._getCaptured(hash)) {
                     this._capture(hash, value);
+                    this._count++;
                     return position;
                 }
             }
@@ -201,6 +234,7 @@ var PhaserSnake;
                     hash = position.hash();
                     if(!this._getCaptured(hash)) {
                         this._capture(hash, value);
+                        this._count++;
                         return position;
                     }
                 }
@@ -247,7 +281,7 @@ var PhaserSnake;
         options.direction = PhaserSnake.Direction.Right;
         options.positionX = 10;
         options.positionY = 10;
-        options.speed = 500;
+        options.speed = 200;
         options.boardWidth = map.width;
         options.boardHeight = map.height;
         level = new PhaserSnake.Level(myGame, options);
