@@ -95,14 +95,31 @@ var PhaserSnake;
     })();
     PhaserSnake.GameOptions = GameOptions;    
     var Level = (function () {
-        function Level(game, options) {
+        function Level(game) {
             this._game = game;
-            this.boardManager = new PhaserSnake.BoardManager(options);
-            this._snake = new PhaserSnake.Snake(game, options, this);
-            this._boardHeight = options.boardHeight;
-            this._boardWidth = options.boardWidth;
-            this.createFood();
         }
+        Level.prototype.init = function () {
+            this._game.loader.addImageFile("back_tile", "assets/images/back_tile.png");
+            this._game.loader.addImageFile("snake_part", "assets/sprites/snake_part.png");
+            this._game.loader.addImageFile("food", "assets/sprites/food.png");
+            this._game.loader.addTextFile("level_map", "assets/maps/background.csv");
+            this._game.loader.load();
+        };
+        Level.prototype.create = function () {
+            this._map = this._game.createTilemap("back_tile", "level_map", Phaser.Tilemap.FORMAT_CSV, true, 20, 20);
+            var options = new GameOptions();
+            options.direction = Direction.Right;
+            options.positionX = 10;
+            options.positionY = 10;
+            options.speed = 200;
+            options.boardWidth = this._map.width;
+            options.boardHeight = this._map.height;
+            this.boardManager = new PhaserSnake.BoardManager(options);
+            this._snake = new PhaserSnake.Snake(this._game, options, this);
+            this.createFood();
+        };
+        Level.prototype.render = function () {
+        };
         Level.prototype.update = function () {
             if(this._game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) && this._snake.Direction !== Direction.Left) {
                 this._snake.Direction = Direction.Right;
@@ -135,6 +152,9 @@ var PhaserSnake;
             if(toPosition.equal(this._foodPosition)) {
                 this.createFood();
                 return false;
+            }
+            var nextTile = this.boardManager.getCaptured(toPosition);
+            if(nextTile) {
             }
             return true;
         };
@@ -264,31 +284,6 @@ var PhaserSnake;
 })(PhaserSnake || (PhaserSnake = {}));
 var PhaserSnake;
 (function (PhaserSnake) {
-    var myGame = new Phaser.Game(window, 'game', 800, 480, init, create, update, render);
-    var map;
-    var level;
-    function init() {
-        myGame.stage.scaleMode = Phaser.StageScaleMode.SHOW_ALL;
-        myGame.loader.addImageFile("back_tile", "assets/images/back_tile.png");
-        myGame.loader.addImageFile("snake_part", "assets/sprites/snake_part.png");
-        myGame.loader.addImageFile("food", "assets/sprites/food.png");
-        myGame.loader.addTextFile("level_map", "assets/maps/background.csv");
-        myGame.loader.load();
-    }
-    function create() {
-        map = myGame.createTilemap("back_tile", "level_map", Phaser.Tilemap.FORMAT_CSV, true, 20, 20);
-        var options = new PhaserSnake.GameOptions();
-        options.direction = PhaserSnake.Direction.Right;
-        options.positionX = 10;
-        options.positionY = 10;
-        options.speed = 200;
-        options.boardWidth = map.width;
-        options.boardHeight = map.height;
-        level = new PhaserSnake.Level(myGame, options);
-    }
-    function update() {
-        level.update();
-    }
-    function render() {
-    }
+    var myGame = new Phaser.Game(window, 'game', 800, 480);
+    myGame.switchState(PhaserSnake.Level, true, true);
 })(PhaserSnake || (PhaserSnake = {}));
